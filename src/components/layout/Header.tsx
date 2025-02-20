@@ -18,13 +18,13 @@ export function Header() {
           {/* Logo et titre de l'application */}
           <Link to="/" className="flex items-center space-x-2">
             <BookOpen className="w-6 h-6 text-indigo-600" />
-            <span className="text-xl font-bold text-gray-900">MangaCollect</span>
+            <span className="text-xl font-bold text-gray-900">MangaMania</span>
           </Link>
           
           {/* Navigation principale */}
           <nav className="flex items-center space-x-6">
             {/* Lien Découvrir */}
-            <Link to="/discover" className="flex flex-col items-center text-gray-600 hover:text-indigo-600">
+            <Link to="/decouvrir" className="flex flex-col items-center text-gray-600 hover:text-indigo-600">
               <Search className="w-6 h-6" />
               <span className="text-xs">Découvrir</span>
             </Link>
