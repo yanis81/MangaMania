@@ -12,6 +12,7 @@ import {
   BookCopy,
   Activity,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // Interface pour les données de manga
 interface Manga {
@@ -85,7 +86,7 @@ export function Decouvrir() {
     setIsLoadingTop(true);
     try {
       const response = await axios.get("https://api.jikan.moe/v4/top/manga");
-      setTopMangas(response.data.data.slice(0, 50));
+      setTopMangas(response.data.data);
     } catch (error) {
       console.error("Erreur lors de la récupération des tops mangas :", error);
     } finally {
@@ -117,82 +118,88 @@ export function Decouvrir() {
         isTopManga ? "h-full" : ""
       }`}
     >
-      <div className="relative">
-        <img
-          src={manga.images.webp.large_image_url || manga.images.webp.image_url}
-          alt={manga.title}
-          className="w-full h-64 object-cover"
-        />
-        {manga.rank && isTopManga && (
-          <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full flex items-center">
-            <Trophy className="w-4 h-4 mr-1" />#{manga.rank}
-          </div>
-        )}
-      </div>
-      <div className="p-6">
-        <h3 className="text-xl font-bold mb-2 line-clamp-1">{manga.title}</h3>
-
-        {/* Informations principales */}
-        <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
-          {manga.score && (
-            <span className="flex items-center text-gray-600">
-              <Star className="w-4 h-4 mr-1 text-yellow-500" />
-              {manga.score}/10
-            </span>
-          )}
-          {manga.status && (
-            <span className="flex items-center text-gray-600">
-              <Activity className="w-4 h-4 mr-1" />
-              {translateStatus(manga.status)}
-            </span>
-          )}
-          {manga.volumes && (
-            <span className="flex items-center text-gray-600">
-              <BookCopy className="w-4 h-4 mr-1" />
-              {manga.volumes} tomes
-            </span>
-          )}
-          {manga.chapters && (
-            <span className="flex items-center text-gray-600">
-              <BookMarked className="w-4 h-4 mr-1" />
-              {manga.chapters} chapitres
-            </span>
-          )}
-        </div>
-
-        {/* Maison d'édition et année */}
-        <div className="mb-3 text-sm">
-          {manga.serializations && manga.serializations.length > 0 && (
-            <div className="flex items-center text-gray-600 mb-1">
-              <Building2 className="w-4 h-4 mr-1" />
-              {manga.serializations.map((s) => s.name).join(", ")}
-            </div>
-          )}
-          {manga.published?.prop?.from?.year && (
-            <div className="flex items-center text-gray-600">
-              <Calendar className="w-4 h-4 mr-1" />
-              {manga.published.string || manga.published.prop.from.year}
+      <Link to={`/manga/${manga.mal_id}`} className="block">
+        <div className="relative">
+          <img
+            src={
+              manga.images.webp.large_image_url || manga.images.webp.image_url
+            }
+            alt={manga.title}
+            className="w-full h-64 object-cover"
+          />
+          {manga.rank && isTopManga && (
+            <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full flex items-center">
+              <Trophy className="w-4 h-4 mr-1" />#{manga.rank}
             </div>
           )}
         </div>
+        <div className="p-6">
+          <h3 className="text-xl font-bold mb-2 line-clamp-1">{manga.title}</h3>
 
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-          {manga.synopsis}
-        </p>
-
-        {manga.genres && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {manga.genres.slice(0, 3).map((genre) => (
-              <span
-                key={genre.name}
-                className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full"
-              >
-                {genre.name}
+          {/* Informations principales */}
+          <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+            {manga.score && (
+              <span className="flex items-center text-gray-600">
+                <Star className="w-4 h-4 mr-1 text-yellow-500" />
+                {manga.score}/10
               </span>
-            ))}
+            )}
+            {manga.status && (
+              <span className="flex items-center text-gray-600">
+                <Activity className="w-4 h-4 mr-1" />
+                {translateStatus(manga.status)}
+              </span>
+            )}
+            {manga.volumes && (
+              <span className="flex items-center text-gray-600">
+                <BookCopy className="w-4 h-4 mr-1" />
+                {manga.volumes} tomes
+              </span>
+            )}
+            {manga.chapters && (
+              <span className="flex items-center text-gray-600">
+                <BookMarked className="w-4 h-4 mr-1" />
+                {manga.chapters} chapitres
+              </span>
+            )}
           </div>
-        )}
 
+          {/* Maison d'édition et année */}
+          <div className="mb-3 text-sm">
+            {manga.serializations && manga.serializations.length > 0 && (
+              <div className="flex items-center text-gray-600 mb-1">
+                <Building2 className="w-4 h-4 mr-1" />
+                {manga.serializations.map((s) => s.name).join(", ")}
+              </div>
+            )}
+            {manga.published?.prop?.from?.year && (
+              <div className="flex items-center text-gray-600">
+                <Calendar className="w-4 h-4 mr-1" />
+                {manga.published.string || manga.published.prop.from.year}
+              </div>
+            )}
+          </div>
+
+          <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+            {manga.synopsis}
+          </p>
+
+          {manga.genres && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {manga.genres.slice(0, 3).map((genre) => (
+                <span
+                  key={genre.name}
+                  className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full"
+                >
+                  {genre.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </Link>
+
+      <div className="px-6 pb-6">
         <button
           onClick={() => addToCollection(manga)}
           disabled={collection.some((m) => m.mal_id === manga.mal_id)}

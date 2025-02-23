@@ -17,7 +17,7 @@ export function Header() {
           </Link>
           
           <nav className="flex items-center space-x-6">
-            <Link to="/discover" className="flex flex-col items-center text-gray-600 hover:text-indigo-600">
+            <Link to="/decouvrir" className="flex flex-col items-center text-gray-600 hover:text-indigo-600">
               <Search className="w-6 h-6" />
               <span className="text-xs">Découvrir</span>
             </Link>

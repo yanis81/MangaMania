@@ -1,73 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle2, Clock, AlertCircle, BookX, Eye, EyeOff } from 'lucide-react';
-
-// Interface pour les données de manga en lecture
-interface MangaLecture {
-  id: number;
-  title: string;
-  coverUrl: string;
-  totalChapters: number;
-  currentChapter: number;
-  status: 'reading' | 'completed' | 'on-hold' | 'dropped' | 'plan-to-read';
-  lastRead: string;
-}
+import { mangaService, type MangaCollection } from '../services/mangaService';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Composant Lecture
  * Page permettant de suivre sa progression de lecture des mangas
  */
 export function Lecture() {
-  // Données de test pour la démonstration
-  const [mangas, setMangas] = useState<MangaLecture[]>([
-    {
-      id: 1,
-      title: "One Piece",
-      coverUrl: "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?auto=format&fit=crop&q=80&w=400",
-      totalChapters: 1100,
-      currentChapter: 1087,
-      status: 'reading',
-      lastRead: '2024-03-15'
-    },
-    {
-      id: 2,
-      title: "Naruto",
-      coverUrl: "https://images.unsplash.com/photo-1613376023733-0a73315d9b06?auto=format&fit=crop&q=80&w=400",
-      totalChapters: 700,
-      currentChapter: 700,
-      status: 'completed',
-      lastRead: '2024-02-28'
-    },
-    {
-      id: 3,
-      title: "Death Note",
-      coverUrl: "https://images.unsplash.com/photo-1614583225154-5fcdda07019e?auto=format&fit=crop&q=80&w=400",
-      totalChapters: 108,
-      currentChapter: 45,
-      status: 'on-hold',
-      lastRead: '2024-01-15'
+  const { user } = useAuth();
+  const [mangas, setMangas] = useState<MangaCollection[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadMangaList();
+  }, [user]);
+
+  const loadMangaList = async () => {
+    try {
+      if (user) {
+        const userCollection = await mangaService.getUserCollection();
+        setMangas(userCollection);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement de la liste de lecture:', error);
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
 
   // Fonction pour mettre à jour le statut d'un manga
-  const updateMangaStatus = (id: number, newStatus: MangaLecture['status']) => {
-    setMangas(mangas.map(manga => 
-      manga.id === id ? { ...manga, status: newStatus } : manga
-    ));
+  const updateMangaStatus = async (id: number, newStatus: MangaCollection['reading_status'], currentChapter: number, currentVolume: number) => {
+    try {
+      await mangaService.updateReadingStatus(id, newStatus, currentChapter, currentVolume);
+      await loadMangaList(); // Recharger la liste après la mise à jour
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut:', error);
+    }
   };
 
   // Fonction pour mettre à jour le chapitre actuel
-  const updateCurrentChapter = (id: number, chapter: number) => {
-    setMangas(mangas.map(manga => 
-      manga.id === id ? { 
-        ...manga, 
-        currentChapter: Math.min(Math.max(1, chapter), manga.totalChapters),
-        lastRead: new Date().toISOString().split('T')[0]
-      } : manga
-    ));
+  const updateCurrentChapter = async (id: number, chapter: number, currentVolume: number, status: MangaCollection['reading_status']) => {
+    try {
+      await mangaService.updateReadingStatus(
+        id,
+        status,
+        Math.max(1, chapter),
+        currentVolume
+      );
+      await loadMangaList();
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du chapitre:', error);
+    }
   };
 
   // Fonction pour obtenir l'icône et la couleur en fonction du statut
-  const getStatusInfo = (status: MangaLecture['status']) => {
+  const getStatusInfo = (status: MangaCollection['reading_status']) => {
     const statusMap = {
       'reading': { icon: Eye, color: 'text-green-500', text: 'En lecture' },
       'completed': { icon: CheckCircle2, color: 'text-blue-500', text: 'Terminé' },
@@ -77,6 +65,28 @@ export function Lecture() {
     };
     return statusMap[status];
   };
+
+  if (!user) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <p className="text-gray-600">
+            Connectez-vous pour accéder à votre suivi de lecture.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <p className="text-gray-600">Chargement de votre liste de lecture...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -93,8 +103,8 @@ export function Lecture() {
       {/* Statistiques de lecture */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         {['reading', 'completed', 'on-hold', 'dropped'].map(status => {
-          const count = mangas.filter(m => m.status === status).length;
-          const { icon: StatusIcon, color, text } = getStatusInfo(status as MangaLecture['status']);
+          const count = mangas.filter(m => m.reading_status === status).length;
+          const { icon: StatusIcon, color, text } = getStatusInfo(status as MangaCollection['reading_status']);
           return (
             <div key={status} className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-2">
@@ -110,16 +120,16 @@ export function Lecture() {
       {/* Liste des mangas */}
       <div className="grid grid-cols-1 gap-6">
         {mangas.map(manga => {
-          const { icon: StatusIcon, color, text } = getStatusInfo(manga.status);
-          const progress = (manga.currentChapter / manga.totalChapters) * 100;
+          const { icon: StatusIcon, color, text } = getStatusInfo(manga.reading_status);
+          const progress = manga.chapters ? (manga.current_chapter / manga.chapters) * 100 : 0;
 
           return (
-            <div key={manga.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div key={manga.mal_id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="flex flex-col md:flex-row">
                 {/* Image de couverture */}
                 <div className="w-full md:w-48 h-48 md:h-auto">
                   <img
-                    src={manga.coverUrl}
+                    src={manga.image_url}
                     alt={manga.title}
                     className="w-full h-full object-cover"
                   />
@@ -139,7 +149,7 @@ export function Lecture() {
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-600">
-                        Progression : {manga.currentChapter} / {manga.totalChapters} chapitres
+                        Progression : {manga.current_chapter} / {manga.chapters || '?'} chapitres
                       </span>
                       <span className="text-sm font-medium text-indigo-600">
                         {progress.toFixed(1)}%
@@ -156,23 +166,33 @@ export function Lecture() {
                   {/* Contrôles */}
                   <div className="flex flex-wrap items-center gap-4">
                     <div className="flex items-center space-x-2">
-                      <label htmlFor={`chapter-${manga.id}`} className="text-sm text-gray-600">
+                      <label htmlFor={`chapter-${manga.mal_id}`} className="text-sm text-gray-600">
                         Chapitre actuel :
                       </label>
                       <input
                         type="number"
-                        id={`chapter-${manga.id}`}
-                        value={manga.currentChapter}
-                        onChange={(e) => updateCurrentChapter(manga.id, parseInt(e.target.value))}
+                        id={`chapter-${manga.mal_id}`}
+                        value={manga.current_chapter}
+                        onChange={(e) => updateCurrentChapter(
+                          manga.mal_id,
+                          parseInt(e.target.value),
+                          manga.current_volume,
+                          manga.reading_status
+                        )}
                         min="1"
-                        max={manga.totalChapters}
+                        max={manga.chapters || undefined}
                         className="w-20 px-2 py-1 border border-gray-300 rounded-md"
                       />
                     </div>
 
                     <select
-                      value={manga.status}
-                      onChange={(e) => updateMangaStatus(manga.id, e.target.value as MangaLecture['status'])}
+                      value={manga.reading_status}
+                      onChange={(e) => updateMangaStatus(
+                        manga.mal_id,
+                        e.target.value as MangaCollection['reading_status'],
+                        manga.current_chapter,
+                        manga.current_volume
+                      )}
                       className="px-3 py-1 border border-gray-300 rounded-md text-sm"
                     >
                       <option value="reading">En lecture</option>
@@ -183,7 +203,9 @@ export function Lecture() {
                     </select>
 
                     <span className="text-sm text-gray-500">
-                      Dernière lecture : {manga.lastRead}
+                      Dernière lecture : {manga.last_read instanceof Date ? 
+                        manga.last_read.toLocaleDateString() : 
+                        new Date(manga.last_read.seconds * 1000).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
