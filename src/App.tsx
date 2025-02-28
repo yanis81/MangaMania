@@ -8,6 +8,7 @@ import { Decouvrir } from "./pages/Decouvrir";
 import { Lecture } from "./pages/Lecture";
 import { Erreur404 } from "./pages/Erreur404";
 import { MangaDetail } from "./pages/MangaDetail";
+import { Calendrier } from "./pages/Calendrier";
 
 /**
  * Composant principal de l'application
@@ -30,6 +31,8 @@ function App() {
             <Route path="/decouvrir" element={<Decouvrir />} />
             {/* Route de la page lecture */}
             <Route path="/lecture" element={<Lecture />} />
+            {/* Route de la page Calendrier */}
+            <Route path="/calendrier" element={<Calendrier />} />
             {/* Route de la page individuel d'un manga*/}
             <Route path="/manga/:id" element={<MangaDetail />} />
             {/* Route de la page erreur 404 */}

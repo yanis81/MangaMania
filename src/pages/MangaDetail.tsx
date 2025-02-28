@@ -14,10 +14,13 @@ import {
   Globe,
   Tag,
   Trophy,
-  Heart
+  Heart,
+  Check,
+  BookOpenCheck
 } from 'lucide-react';
 import { mangaService } from '../services/mangaService';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 interface MangaDetail {
   mal_id: number;
@@ -64,20 +67,33 @@ export function MangaDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInCollection, setIsInCollection] = useState(false);
+  const [isAddingToCollection, setIsAddingToCollection] = useState(false);
+  const { t } = useTranslation();
+
+  const translateText = async (text: string) => {
+    try {
+      const [translation] = await t(text, { lng: 'fr' });
+      return translation;
+    } catch (error) {
+      console.error('Erreur de traduction:', error);
+      return text; // Retourner le texte original en cas d'erreur
+    }
+  };
 
   useEffect(() => {
     const fetchMangaDetails = async () => {
       try {
         setIsLoading(true);
         const response = await axios.get(`https://api.jikan.moe/v4/manga/${id}/full`);
-        setManga(response.data.data);
+        const translatedTitle = await translateText(response.data.data.title);
+        setManga({ ...response.data.data, title: translatedTitle });
         if (user) {
           const inCollection = await mangaService.isInCollection(Number(id));
           setIsInCollection(inCollection);
         }
         setError(null);
       } catch (err) {
-        setError('Une erreur est survenue lors du chargement des données du manga');
+        setError(t('errorLoadingManga'));
         console.error('Erreur lors de la récupération des détails du manga:', err);
       } finally {
         setIsLoading(false);
@@ -93,26 +109,32 @@ export function MangaDetail() {
     if (!user || !manga) return;
 
     try {
+      setIsAddingToCollection(true);
       if (isInCollection) {
         await mangaService.removeFromCollection(manga.mal_id);
+        setIsInCollection(false);
       } else {
         await mangaService.addToCollection({
           mal_id: manga.mal_id,
           title: manga.title,
-          image_url: manga.images.webp.large_image_url,
+          images: {
+            webp: {
+              image_url: manga.images.webp.image_url,
+              large_image_url: manga.images.webp.large_image_url
+            }
+          },
           volumes: manga.volumes,
           chapters: manga.chapters,
           status: manga.status,
           score: manga.score,
-          synopsis: manga.synopsis,
-          reading_status: 'plan-to-read',
-          current_chapter: 0,
-          current_volume: 0
+          synopsis: manga.synopsis
         });
+        setIsInCollection(true);
       }
-      setIsInCollection(!isInCollection);
     } catch (error) {
       console.error('Erreur lors de la modification de la collection:', error);
+    } finally {
+      setIsAddingToCollection(false);
     }
   };
 
@@ -139,7 +161,7 @@ export function MangaDetail() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-lg text-red-600 mb-4">{error}</div>
-        <Link to="/discover" className="text-indigo-600 hover:text-indigo-800">
+        <Link to="/decouvrir" className="text-indigo-600 hover:text-indigo-800">
           Retourner à la page de découverte
         </Link>
       </div>
@@ -151,7 +173,7 @@ export function MangaDetail() {
       <div className="max-w-7xl mx-auto px-4">
         {/* Bouton retour */}
         <Link
-          to="/discover"
+          to="/decouvrir"
           className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-6"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
@@ -182,17 +204,45 @@ export function MangaDetail() {
                   )}
                 </div>
                 {user && (
-                  <button
-                    onClick={handleCollectionToggle}
-                    className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-                      isInCollection
-                        ? 'bg-gray-200 text-gray-700'
-                        : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                    }`}
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    {isInCollection ? 'Dans la collection' : 'Ajouter à ma collection'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleCollectionToggle}
+                      disabled={isAddingToCollection}
+                      className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                        isInCollection
+                          ? 'bg-green-500 text-white'
+                          : isAddingToCollection
+                          ? 'bg-gray-300 cursor-wait'
+                          : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      }`}
+                    >
+                      {isInCollection ? (
+                        <>
+                          <Check className="w-5 h-5 mr-2" />
+                          Dans la collection
+                        </>
+                      ) : isAddingToCollection ? (
+                        <>
+                          <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Ajout en cours...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-5 h-5 mr-2" />
+                          Ajouter à ma collection
+                        </>
+                      )}
+                    </button>
+                    {isInCollection && (
+                      <Link
+                        to="/lecture"
+                        className="flex items-center px-4 py-2 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+                      >
+                        <BookOpenCheck className="w-5 h-5 mr-2" />
+                        Voir dans ma lecture
+                      </Link>
+                    )}
+                  </div>
                 )}
               </div>
 

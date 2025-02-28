@@ -13,6 +13,9 @@ import {
   Activity,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { mangaService } from "../services/mangaService";
+import { useTranslation } from 'react-i18next';
 
 // Interface pour les données de manga
 interface Manga {
@@ -43,22 +46,35 @@ interface Manga {
   status?: string;
 }
 
-/**
- * Composant Decouvrir
- * Page permettant d'afficher les top manga et de chercher de nouveaux manga
- */
 export function Decouvrir() {
-  // États existants
+  const { user } = useAuth();
+  const { t } = useTranslation();
   const [searchResults, setSearchResults] = useState<Manga[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [collection, setCollection] = useState<Manga[]>([]);
+  const [inCollection, setInCollection] = useState<Set<number>>(new Set());
   const [topMangas, setTopMangas] = useState<Manga[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingTop, setIsLoadingTop] = useState(false);
+  const [addingToCollection, setAddingToCollection] = useState<number | null>(null);
 
   useEffect(() => {
     fetchTopMangas();
-  }, []);
+    if (user) {
+      updateCollectionStatus();
+    }
+  }, [user]);
+
+  const updateCollectionStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const collection = await mangaService.getUserCollection();
+      const malIds = new Set(collection.map(manga => manga.mal_id));
+      setInCollection(malIds);
+    } catch (error) {
+      console.error("Error fetching collection status:", error);
+    }
+  };
 
   const searchMangas = async () => {
     if (!searchQuery.trim()) return;
@@ -68,7 +84,11 @@ export function Decouvrir() {
       const response = await axios.get(
         `https://api.jikan.moe/v4/manga?q=${searchQuery}`
       );
-      setSearchResults(response.data.data);
+      const translatedResults = await Promise.all(response.data.data.map(async (manga: Manga) => {
+        const translatedTitle = await translateText(manga.title);
+        return { ...manga, title: translatedTitle };
+      }));
+      setSearchResults(translatedResults);
     } catch (error) {
       console.error("Erreur lors de la recherche:", error);
     } finally {
@@ -76,9 +96,23 @@ export function Decouvrir() {
     }
   };
 
-  const addToCollection = (manga: Manga) => {
-    if (!collection.find((m) => m.mal_id === manga.mal_id)) {
-      setCollection([...collection, manga]);
+  const addToCollection = async (manga: Manga) => {
+    if (!user) {
+      alert("Veuillez vous connecter pour ajouter des mangas à votre collection");
+      return;
+    }
+
+    try {
+      setAddingToCollection(manga.mal_id);
+      await mangaService.addToCollection(manga);
+      setInCollection(prev => new Set([...prev, manga.mal_id]));
+    } catch (error) {
+      console.error("Erreur lors de l'ajout à la collection:", error);
+      if (error instanceof Error) {
+        alert(error.message);
+      }
+    } finally {
+      setAddingToCollection(null);
     }
   };
 
@@ -94,7 +128,6 @@ export function Decouvrir() {
     }
   };
 
-  // Fonction pour traduire le statut en français
   const translateStatus = (status: string) => {
     const statusMap: { [key: string]: string } = {
       Finished: "Terminé",
@@ -106,121 +139,141 @@ export function Decouvrir() {
     return statusMap[status] || status;
   };
 
+  const translateText = async (text: string) => {
+    try {
+      const [translation] = await t(text, { lng: 'fr' });
+      return translation;
+    } catch (error) {
+      console.error('Erreur de traduction:', error);
+      return text; // Retourner le texte original en cas d'erreur
+    }
+  };
+
   const MangaCard = ({
     manga,
     isTopManga = false,
   }: {
     manga: Manga;
     isTopManga?: boolean;
-  }) => (
-    <div
-      className={`bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-[1.02] transition-transform ${
-        isTopManga ? "h-full" : ""
-      }`}
-    >
-      <Link to={`/manga/${manga.mal_id}`} className="block">
-        <div className="relative">
-          <img
-            src={
-              manga.images.webp.large_image_url || manga.images.webp.image_url
-            }
-            alt={manga.title}
-            className="w-full h-64 object-cover"
-          />
-          {manga.rank && isTopManga && (
-            <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full flex items-center">
-              <Trophy className="w-4 h-4 mr-1" />#{manga.rank}
-            </div>
-          )}
-        </div>
-        <div className="p-6">
-          <h3 className="text-xl font-bold mb-2 line-clamp-1">{manga.title}</h3>
+  }) => {
+    const isInUserCollection = inCollection.has(manga.mal_id);
+    const isAdding = addingToCollection === manga.mal_id;
 
-          {/* Informations principales */}
-          <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
-            {manga.score && (
-              <span className="flex items-center text-gray-600">
-                <Star className="w-4 h-4 mr-1 text-yellow-500" />
-                {manga.score}/10
-              </span>
-            )}
-            {manga.status && (
-              <span className="flex items-center text-gray-600">
-                <Activity className="w-4 h-4 mr-1" />
-                {translateStatus(manga.status)}
-              </span>
-            )}
-            {manga.volumes && (
-              <span className="flex items-center text-gray-600">
-                <BookCopy className="w-4 h-4 mr-1" />
-                {manga.volumes} tomes
-              </span>
-            )}
-            {manga.chapters && (
-              <span className="flex items-center text-gray-600">
-                <BookMarked className="w-4 h-4 mr-1" />
-                {manga.chapters} chapitres
-              </span>
-            )}
-          </div>
-
-          {/* Maison d'édition et année */}
-          <div className="mb-3 text-sm">
-            {manga.serializations && manga.serializations.length > 0 && (
-              <div className="flex items-center text-gray-600 mb-1">
-                <Building2 className="w-4 h-4 mr-1" />
-                {manga.serializations.map((s) => s.name).join(", ")}
-              </div>
-            )}
-            {manga.published?.prop?.from?.year && (
-              <div className="flex items-center text-gray-600">
-                <Calendar className="w-4 h-4 mr-1" />
-                {manga.published.string || manga.published.prop.from.year}
+    return (
+      <div
+        className={`bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-[1.02] transition-transform ${
+          isTopManga ? "h-full" : ""
+        }`}
+      >
+        <Link to={`/manga/${manga.mal_id}`} className="block">
+          <div className="relative">
+            <img
+              src={
+                manga.images.webp.large_image_url || manga.images.webp.image_url
+              }
+              alt={manga.title}
+              className="w-full h-64 object-cover"
+            />
+            {manga.rank && isTopManga && (
+              <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full flex items-center">
+                <Trophy className="w-4 h-4 mr-1" />#{manga.rank}
               </div>
             )}
           </div>
+          <div className="p-6">
+            <h3 className="text-xl font-bold mb-2 line-clamp-1">{manga.title}</h3>
 
-          <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-            {manga.synopsis}
-          </p>
-
-          {manga.genres && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {manga.genres.slice(0, 3).map((genre) => (
-                <span
-                  key={genre.name}
-                  className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full"
-                >
-                  {genre.name}
+            <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+              {manga.score && (
+                <span className="flex items-center text-gray-600">
+                  <Star className="w-4 h-4 mr-1 text-yellow-500" />
+                  {manga.score}/10
                 </span>
-              ))}
+              )}
+              {manga.status && (
+                <span className="flex items-center text-gray-600">
+                  <Activity className="w-4 h-4 mr-1" />
+                  {translateStatus(manga.status)}
+                </span>
+              )}
+              {manga.volumes && (
+                <span className="flex items-center text-gray-600">
+                  <BookCopy className="w-4 h-4 mr-1" />
+                  {manga.volumes} tomes
+                </span>
+              )}
+              {manga.chapters && (
+                <span className="flex items-center text-gray-600">
+                  <BookMarked className="w-4 h-4 mr-1" />
+                  {manga.chapters} chapitres
+                </span>
+              )}
             </div>
-          )}
-        </div>
-      </Link>
 
-      <div className="px-6 pb-6">
-        <button
-          onClick={() => addToCollection(manga)}
-          disabled={collection.some((m) => m.mal_id === manga.mal_id)}
-          className={`flex items-center justify-center w-full px-4 py-2 rounded-lg transition-colors ${
-            collection.some((m) => m.mal_id === manga.mal_id)
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-indigo-600 hover:bg-indigo-700"
-          } text-white`}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          {collection.some((m) => m.mal_id === manga.mal_id)
-            ? "Déjà dans la collection"
-            : "Ajouter à ma collection"}
-        </button>
+            <div className="mb-3 text-sm">
+              {manga.serializations && manga.serializations.length > 0 && (
+                <div className="flex items-center text-gray-600 mb-1">
+                  <Building2 className="w-4 h-4 mr-1" />
+                  {manga.serializations.map((s) => s.name).join(", ")}
+                </div>
+              )}
+              {manga.published?.prop?.from?.year && (
+                <div className="flex items-center text-gray-600">
+                  <Calendar className="w-4 h-4 mr-1" />
+                  {manga.published.string || manga.published.prop.from.year}
+                </div>
+              )}
+            </div>
+
+            <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+              {manga.synopsis}
+            </p>
+
+            {manga.genres && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {manga.genres.slice(0, 3).map((genre) => (
+                  <span
+                    key={genre.name}
+                    className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full"
+                  >
+                    {genre.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </Link>
+
+        <div className="px-6 pb-6">
+          <button
+            onClick={() => addToCollection(manga)}
+            disabled={isInUserCollection || isAdding || !user}
+            className={`flex items-center justify-center w-full px-4 py-2 rounded-lg transition-colors ${
+              isInUserCollection
+                ? 'bg-green-500 text-white cursor-not-allowed'
+                : !user
+                ? 'bg-gray-400 cursor-not-allowed'
+                : isAdding
+                ? 'bg-indigo-400 cursor-wait'
+                : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+            }`}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            {isInUserCollection
+              ? "Dans votre collection"
+              : !user
+              ? "Connectez-vous pour ajouter"
+              : isAdding
+              ? "Ajout en cours..."
+              : "Ajouter à ma collection"}
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* En-tête de la page */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
           Partez à l'exploration de nouveaux mangas
@@ -230,7 +283,6 @@ export function Decouvrir() {
         </p>
       </div>
 
-      {/* Barre de recherche */}
       <div className="max-w-2xl mx-auto mb-12">
         <h2 className="text-2xl font-semibold mb-6 flex items-center justify-center">
           <Search className="w-6 h-6 mr-2 text-indigo-600" />
@@ -264,7 +316,6 @@ export function Decouvrir() {
         </div>
       </div>
 
-      {/* Résultats de recherche */}
       {isLoading ? (
         <div className="text-center">Chargement...</div>
       ) : (
@@ -283,7 +334,6 @@ export function Decouvrir() {
         )
       )}
 
-      {/* Section Top Mangas */}
       <div className="mb-16">
         <h2 className="text-2xl font-semibold mb-6 flex items-center">
           <Trophy className="w-6 h-6 mr-2 text-yellow-500" />

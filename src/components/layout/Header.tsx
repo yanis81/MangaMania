@@ -1,15 +1,8 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  BookOpen,
-  Search,
-  Library,
-  Eye,
-  UserCircle,
-  LogOut,
-} from "lucide-react";
-import { useAuth } from "../../contexts/AuthContext";
-import { AuthModal } from "../auth/AuthContext";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { BookOpen, Search, Library, Eye, UserCircle, LogOut, Calendar } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { AuthModal } from '../auth/AuthContext';
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -19,7 +12,7 @@ export function Header() {
     try {
       await logout();
     } catch (error) {
-      console.error("Erreur lors de la déconnexion:", error);
+      console.error('Erreur lors de la déconnexion:', error);
     }
   };
 
@@ -29,32 +22,25 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center space-x-2">
             <BookOpen className="w-6 h-6 text-indigo-600" />
-            <span className="text-xl font-bold text-gray-900">
-              MangaCollect
-            </span>
+            <span className="text-xl font-bold text-gray-900">MangaCollect</span>
           </Link>
-
+          
           <nav className="flex items-center space-x-6">
-            <Link
-              to="/decouvrir"
-              className="flex flex-col items-center text-gray-600 hover:text-indigo-600"
-            >
+            <Link to="/decouvrir" className="flex flex-col items-center text-gray-600 hover:text-indigo-600">
               <Search className="w-6 h-6" />
               <span className="text-xs">Découvrir</span>
             </Link>
-            <Link
-              to="/collection"
-              className="flex flex-col items-center text-gray-600 hover:text-indigo-600"
-            >
+            <Link to="/collection" className="flex flex-col items-center text-gray-600 hover:text-indigo-600">
               <Library className="w-6 h-6" />
               <span className="text-xs">Collection</span>
             </Link>
-            <Link
-              to="/lecture"
-              className="flex flex-col items-center text-gray-600 hover:text-indigo-600"
-            >
+            <Link to="/lecture" className="flex flex-col items-center text-gray-600 hover:text-indigo-600">
               <Eye className="w-6 h-6" />
               <span className="text-xs">Lecture</span>
+            </Link>
+            <Link to="/calendrier" className="flex flex-col items-center text-gray-600 hover:text-indigo-600">
+              <Calendar className="w-6 h-6" />
+              <span className="text-xs">Calendrier</span>
             </Link>
             {user ? (
               <button
