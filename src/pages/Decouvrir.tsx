@@ -15,14 +15,13 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { mangaService } from "../services/mangaService";
-import { useTranslation } from 'react-i18next';
 
 // Interface pour les données de manga
 interface Manga {
   mal_id: number;
   title: string;
   images: {
-    webp: {
+    webp: { 
       image_url: string;
       large_image_url: string;
     };
@@ -48,7 +47,6 @@ interface Manga {
 
 export function Decouvrir() {
   const { user } = useAuth();
-  const { t } = useTranslation();
   const [searchResults, setSearchResults] = useState<Manga[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [inCollection, setInCollection] = useState<Set<number>>(new Set());
@@ -84,11 +82,7 @@ export function Decouvrir() {
       const response = await axios.get(
         `https://api.jikan.moe/v4/manga?q=${searchQuery}`
       );
-      const translatedResults = await Promise.all(response.data.data.map(async (manga: Manga) => {
-        const translatedTitle = await translateText(manga.title);
-        return { ...manga, title: translatedTitle };
-      }));
-      setSearchResults(translatedResults);
+      setSearchResults(response.data.data);
     } catch (error) {
       console.error("Erreur lors de la recherche:", error);
     } finally {
@@ -137,16 +131,6 @@ export function Decouvrir() {
       "Not yet published": "À paraître",
     };
     return statusMap[status] || status;
-  };
-
-  const translateText = async (text: string) => {
-    try {
-      const [translation] = await t(text, { lng: 'fr' });
-      return translation;
-    } catch (error) {
-      console.error('Erreur de traduction:', error);
-      return text; // Retourner le texte original en cas d'erreur
-    }
   };
 
   const MangaCard = ({
