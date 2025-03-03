@@ -3,10 +3,6 @@ import { BookOpen, CheckCircle2, Clock, AlertCircle, BookX, Eye, EyeOff } from '
 import { mangaService, type MangaCollection } from '../services/mangaService';
 import { useAuth } from '../contexts/AuthContext';
 
-/**
- * Composant Lecture
- * Page permettant de suivre sa progression de lecture des mangas
- */
 export function Lecture() {
   const { user } = useAuth();
   const [mangas, setMangas] = useState<MangaCollection[]>([]);
@@ -23,38 +19,35 @@ export function Lecture() {
         setMangas(userCollection);
       }
     } catch (error) {
-      console.error('Erreur lors du chargement de la liste de lecture:', error);
+      console.error('Error fetching reading list:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fonction pour mettre à jour le statut d'un manga
   const updateMangaStatus = async (id: number, newStatus: MangaCollection['reading_status'], currentChapter: number, currentVolume: number) => {
     try {
       await mangaService.updateReadingStatus(id, newStatus, currentChapter, currentVolume);
-      await loadMangaList(); // Recharger la liste après la mise à jour
+      await loadMangaList();
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
     }
   };
 
-  // Fonction pour mettre à jour le chapitre actuel
-  const updateCurrentChapter = async (id: number, chapter: number, currentVolume: number, status: MangaCollection['reading_status']) => {
+  const updateCurrentVolume = async (id: number, volume: number, currentChapter: number, status: MangaCollection['reading_status']) => {
     try {
       await mangaService.updateReadingStatus(
         id,
         status,
-        Math.max(1, chapter),
-        currentVolume
+        currentChapter,
+        Math.max(1, volume)
       );
       await loadMangaList();
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du chapitre:', error);
+      console.error('Erreur lors de la mise à jour du volume:', error);
     }
   };
 
-  // Fonction pour obtenir l'icône et la couleur en fonction du statut
   const getStatusInfo = (status: MangaCollection['reading_status']) => {
     const statusMap = {
       'reading': { icon: Eye, color: 'text-green-500', text: 'En lecture' },
@@ -78,7 +71,7 @@ export function Lecture() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div key="loading" className="max-w-7xl mx-auto px-4 py-8">
         <div className="text-center py-12">
           <p className="text-gray-600">Chargement de votre liste de lecture...</p>
         </div>
@@ -88,7 +81,6 @@ export function Lecture() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* En-tête de la page */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
           Suivi de Lecture
@@ -98,13 +90,12 @@ export function Lecture() {
         </p>
       </div>
 
-      {/* Statistiques de lecture */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         {['reading', 'completed', 'on-hold', 'dropped'].map(status => {
           const count = mangas.filter(m => m.reading_status === status).length;
           const { icon: StatusIcon, color, text } = getStatusInfo(status as MangaCollection['reading_status']);
           return (
-            <div key={status} className="bg-white rounded-lg shadow-md p-6">
+            <div key={`status-${status}`} className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-2">
                 <StatusIcon className={`w-6 h-6 ${color}`} />
                 <span className="text-2xl font-bold">{count}</span>
@@ -115,16 +106,14 @@ export function Lecture() {
         })}
       </div>
 
-      {/* Liste des mangas */}
       <div className="grid grid-cols-1 gap-6">
         {mangas.map(manga => {
           const { icon: StatusIcon, color, text } = getStatusInfo(manga.reading_status);
-          const progress = manga.chapters ? (manga.current_chapter / manga.chapters) * 100 : 0;
+          const progress = manga.volumes ? (manga.current_volume / manga.volumes) * 100 : 0;
 
           return (
-            <div key={manga.mal_id} className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div key={`manga-${manga.mal_id}`} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="flex flex-col md:flex-row">
-                {/* Image de couverture */}
                 <div className="w-full md:w-48 h-48 md:h-auto">
                   <img
                     src={manga.image_url}
@@ -133,7 +122,6 @@ export function Lecture() {
                   />
                 </div>
 
-                {/* Informations du manga */}
                 <div className="flex-1 p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold">{manga.title}</h2>
@@ -143,11 +131,10 @@ export function Lecture() {
                     </div>
                   </div>
 
-                  {/* Barre de progression */}
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-600">
-                        Progression : {manga.current_chapter} / {manga.chapters || '?'} chapitres
+                        Progression : Tome {manga.current_volume} / {manga.volumes || '?'}
                       </span>
                       <span className="text-sm font-medium text-indigo-600">
                         {progress.toFixed(1)}%
@@ -161,24 +148,23 @@ export function Lecture() {
                     </div>
                   </div>
 
-                  {/* Contrôles */}
                   <div className="flex flex-wrap items-center gap-4">
                     <div className="flex items-center space-x-2">
-                      <label htmlFor={`chapter-${manga.mal_id}`} className="text-sm text-gray-600">
-                        Chapitre actuel :
+                      <label htmlFor={`volume-${manga.mal_id}`} className="text-sm text-gray-600">
+                        Tome actuel :
                       </label>
                       <input
                         type="number"
-                        id={`chapter-${manga.mal_id}`}
-                        value={manga.current_chapter}
-                        onChange={(e) => updateCurrentChapter(
+                        id={`volume-${manga.mal_id}`}
+                        value={manga.current_volume}
+                        onChange={(e) => updateCurrentVolume(
                           manga.mal_id,
                           parseInt(e.target.value),
-                          manga.current_volume,
+                          manga.current_chapter,
                           manga.reading_status
                         )}
                         min="1"
-                        max={manga.chapters || undefined}
+                        max={manga.volumes || undefined}
                         className="w-20 px-2 py-1 border border-gray-300 rounded-md"
                       />
                     </div>
