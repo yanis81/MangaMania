@@ -39,7 +39,7 @@ interface JikanMangaResponse {
     };
   }
   
-  export const mangadexService = {
+  export const coverImageAdapter = {
     async searchMangaByTitle(title: string): Promise<{ id: string; volumes: number } | null> {
       try {
         const cleanTitle = title

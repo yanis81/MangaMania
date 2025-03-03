@@ -68,12 +68,10 @@ export function Lecture() {
 
   if (!user) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-600">
-            Connectez-vous pour accéder à votre suivi de lecture.
-          </p>
-        </div>
+      <div key="not-authenticated" className="text-center py-12">
+        <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Connectez-vous pour voir votre liste de lecture</h2>
+        <p className="text-gray-600">Suivez votre progression de lecture et gérez vos mangas en cours.</p>
       </div>
     );
   }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { mangaService } from '../services/mangaService';
-import { mangadexService } from '../services/managdexService';
+import { coverImageAdapter } from '../services/coverImageAdapter';
 import { Library, BookOpen, BookCopy, Book as Books, Eye, CheckCircle2, Clock, BookX, EyeOff, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { MangaCollection } from '../services/mangaService';
@@ -52,10 +52,10 @@ export function Collection() {
     setLoadingCovers(true);
     setError(null);
     try {
-      const mangaInfo = await mangadexService.searchMangaByTitle(manga.title);
+      const mangaInfo = await coverImageAdapter.searchMangaByTitle(manga.title);
       if (mangaInfo) {
         console.log(`Found manga info for ${manga.title}:`, mangaInfo);
-        const covers = await mangadexService.getMangaCovers(mangaInfo.id, manga.volumes);
+        const covers = await coverImageAdapter.getMangaCovers(mangaInfo.id, manga.volumes);
         console.log(`Retrieved ${covers.length} covers for ${manga.title}`);
         setVolumeCovers(covers);
       } else {

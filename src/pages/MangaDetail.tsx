@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { mangaService } from '../services/mangaService';
 import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from 'react-i18next';
 
 interface MangaDetail {
   mal_id: number;
@@ -68,32 +67,20 @@ export function MangaDetail() {
   const [error, setError] = useState<string | null>(null);
   const [isInCollection, setIsInCollection] = useState(false);
   const [isAddingToCollection, setIsAddingToCollection] = useState(false);
-  const { t } = useTranslation();
-
-  const translateText = async (text: string) => {
-    try {
-      const [translation] = await t(text, { lng: 'fr' });
-      return translation;
-    } catch (error) {
-      console.error('Erreur de traduction:', error);
-      return text; // Retourner le texte original en cas d'erreur
-    }
-  };
 
   useEffect(() => {
     const fetchMangaDetails = async () => {
       try {
         setIsLoading(true);
         const response = await axios.get(`https://api.jikan.moe/v4/manga/${id}/full`);
-        const translatedTitle = await translateText(response.data.data.title);
-        setManga({ ...response.data.data, title: translatedTitle });
+        setManga(response.data.data);
         if (user) {
           const inCollection = await mangaService.isInCollection(Number(id));
           setIsInCollection(inCollection);
         }
         setError(null);
       } catch (err) {
-        setError(t('errorLoadingManga'));
+        setError('Une erreur est survenue lors du chargement des données du manga');
         console.error('Erreur lors de la récupération des détails du manga:', err);
       } finally {
         setIsLoading(false);
