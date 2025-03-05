@@ -22,10 +22,10 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center space-x-2">
             <BookOpen className="w-6 h-6 text-indigo-600" />
-            <span className="text-xl font-bold text-gray-900">MangaMania</span>
+            <span className="text-xl font-bold text-gray-900 hidden sm:inline">MangaCollect</span>
           </Link>
           
-          <nav className="flex items-center space-x-6">
+          <nav className="flex items-center space-x-4 sm:space-x-6">
             <Link to="/decouvrir" className="flex flex-col items-center text-gray-600 hover:text-indigo-600">
               <Search className="w-6 h-6" />
               <span className="text-xs">Découvrir</span>
