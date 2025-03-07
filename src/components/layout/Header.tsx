@@ -22,7 +22,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center space-x-2">
             <BookOpen className="w-6 h-6 text-indigo-600" />
-            <span className="text-xl font-bold text-gray-900 hidden sm:inline">MangaCollect</span>
+            <span className="text-xl font-bold text-gray-900 hidden sm:inline">MangaMania</span>
           </Link>
           
           <nav className="flex items-center space-x-4 sm:space-x-6">
