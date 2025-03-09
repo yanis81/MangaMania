@@ -1,14 +1,34 @@
 import { useEffect, useState } from 'react';
 
+// Types de notifications possibles
 interface PWAPromptProps {
   type: 'update' | 'offline' | 'install';
   onClose?: () => void;
   onAction?: () => void;
 }
 
+// Interface pour les messages avec bouton d'action
+interface MessageWithAction {
+  title: string;
+  action: string;
+  color: string;
+}
+
+// Interface pour les messages sans bouton d'action
+interface MessageWithoutAction {
+  title: string;
+  color: string;
+  action?: never;
+}
+
+// Type union pour tous les types de messages
+type Message = MessageWithAction | MessageWithoutAction;
+
 const PWAPrompt = ({ type, onClose, onAction }: PWAPromptProps) => {
+  // État pour contrôler la visibilité de la notification
   const [isVisible, setIsVisible] = useState(true);
 
+  // Effet pour gérer la disparition automatique de la notification "offline"
   useEffect(() => {
     if (type === 'offline') {
       const timer = setTimeout(() => {
@@ -19,7 +39,8 @@ const PWAPrompt = ({ type, onClose, onAction }: PWAPromptProps) => {
     }
   }, [type, onClose]);
 
-  const messages = {
+  // Configuration des messages pour chaque type de notification
+  const messages: Record<PWAPromptProps['type'], Message> = {
     update: {
       title: 'Mise à jour disponible !',
       action: 'Mettre à jour',
@@ -38,7 +59,14 @@ const PWAPrompt = ({ type, onClose, onAction }: PWAPromptProps) => {
 
   const currentMessage = messages[type];
 
+  // Ne rend rien si la notification n'est pas visible
   if (!isVisible) return null;
+
+  // Gestionnaire pour fermer la notification
+  const handleClose = () => {
+    setIsVisible(false);
+    onClose?.();
+  };
 
   return (
     <div
@@ -60,8 +88,33 @@ const PWAPrompt = ({ type, onClose, onAction }: PWAPromptProps) => {
         minWidth: '300px'
       }}
     >
-      <p style={{ margin: 0 }}>{currentMessage.title}</p>
-      {currentMessage.action && (
+      {/* Bouton de fermeture (X) */}
+      <button
+        onClick={handleClose}
+        style={{
+          position: 'absolute',
+          top: '8px',
+          right: '8px',
+          background: 'transparent',
+          border: 'none',
+          color: 'white',
+          cursor: 'pointer',
+          padding: '4px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '18px'
+        }}
+        aria-label="Fermer"
+      >
+        ✕
+      </button>
+
+      {/* Titre de la notification */}
+      <p style={{ margin: '0', paddingRight: '24px' }}>{currentMessage.title}</p>
+
+      {/* Bouton d'action conditionnel */}
+      {'action' in currentMessage && (
         <button
           onClick={() => {
             onAction?.();
