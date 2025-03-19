@@ -6,82 +6,79 @@ import PWAPrompt from './components/PWAPrompt';
 // Import des styles globaux
 import './index.css';
 
-// Variable pour stocker la demande d'installation de la PWA
-let deferredPrompt: any = null;
+// Types pour la gestion de la PWA
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+};
 
-// Écoute de l'événement "beforeinstallprompt" qui se déclenche quand la PWA peut être installée
-window.addEventListener('beforeinstallprompt', (e) => {
-  // Empêche l'affichage de la popup d'installation par défaut
-  e.preventDefault();
-  // Stocke l'événement pour une utilisation ultérieure
-  deferredPrompt = e;
-  
-  // Création d'un conteneur pour notre notification personnalisée
+// Variable pour stocker la demande d'installation de la PWA
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
+
+/**
+ * Crée et affiche une notification PWA
+ * @param type - Le type de notification ('install' | 'update' | 'offline')
+ * @param onAction - Callback à exécuter lors de l'action
+ * @param onClose - Callback optionnel de fermeture
+ */
+const showPWAPrompt = (
+  type: 'install' | 'update' | 'offline',
+  onAction?: () => Promise<void> | void,
+  onClose?: () => void
+) => {
   const root = document.createElement('div');
-  root.id = 'pwa-prompt';
+  root.id = `pwa-${type}`;
   document.body.appendChild(root);
-  
-  // Affichage de notre notification personnalisée d'installation
+
   createRoot(root).render(
     <PWAPrompt
-      type="install"
+      type={type}
       onAction={async () => {
-        if (deferredPrompt) {
-          // Déclenche la popup d'installation native
-          deferredPrompt.prompt();
-          // Attend la réponse de l'utilisateur
-          const { outcome } = await deferredPrompt.userChoice;
-          if (outcome === 'accepted') {
-            console.log('User accepted the install prompt');
-          }
-          // Réinitialise la variable
-          deferredPrompt = null;
-        }
-        // Supprime la notification
+        await onAction?.();
+        root.remove();
+      }}
+      onClose={() => {
+        onClose?.();
         root.remove();
       }}
     />
   );
+};
+
+// Gestion de l'installation de la PWA
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e as BeforeInstallPromptEvent;
+  
+  showPWAPrompt('install', async () => {
+    if (deferredPrompt) {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('Installation PWA acceptée');
+      }
+      deferredPrompt = null;
+    }
+  });
 });
 
-// Enregistrement et configuration du Service Worker
+// Configuration du Service Worker
 const updateSW = registerSW({
-  onNeedRefresh() {
-    // Création d'un conteneur pour la notification de mise à jour
-    const root = document.createElement('div');
-    root.id = 'pwa-update';
-    document.body.appendChild(root);
-    
-    // Affichage de la notification de mise à jour
-    createRoot(root).render(
-      <PWAPrompt
-        type="update"
-        onAction={() => {
-          // Recharge la page pour appliquer la mise à jour
-          location.reload();
-          root.remove();
-        }}
-      />
-    );
+  onNeedRefresh: () => {
+    showPWAPrompt('update', () => {
+      location.reload();
+    });
   },
-  onOfflineReady() {
-    // Création d'un conteneur pour la notification de mode hors ligne
-    const root = document.createElement('div');
-    root.id = 'pwa-offline';
-    document.body.appendChild(root);
-    
-    // Affichage de la notification de mode hors ligne
-    createRoot(root).render(
-      <PWAPrompt
-        type="offline"
-        onClose={() => root.remove()}
-      />
-    );
+  onOfflineReady: () => {
+    showPWAPrompt('offline');
   },
 });
 
-// Montage de l'application React avec StrictMode
-createRoot(document.getElementById('root')!).render(
+// Montage de l'application React
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Element root non trouvé');
+
+createRoot(rootElement).render(
   <StrictMode>
     <App />
   </StrictMode>

@@ -5,8 +5,9 @@ import { coverImageAdapter } from '../services/coverImageAdapter';
 import { Library, BookOpen, BookCopy, Book as Books, Eye, CheckCircle2, Clock, BookX, EyeOff, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { MangaCollection } from '../services/mangaService';
+import { SEO } from '../components/SEO';
 
-export function Collection() {
+export const Collection: React.FC = () => {
   const { user } = useAuth();
   const [mangas, setMangas] = React.useState<MangaCollection[]>([]);
   const [filteredMangas, setFilteredMangas] = React.useState<MangaCollection[]>([]);
@@ -211,80 +212,89 @@ export function Collection() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">Ma Collection</h1>
-        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-          <div className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-3 flex-1">
-            <Books className="w-6 h-6 text-indigo-600" />
-            <div>
-              <p className="text-sm text-gray-600">Total Mangas</p>
-              <p className="text-xl font-bold text-gray-900">{totalMangas}</p>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-3 flex-1">
-            <BookCopy className="w-6 h-6 text-indigo-600" />
-            <div>
-              <p className="text-sm text-gray-600">Total Tomes</p>
-              <p className="text-xl font-bold text-gray-900">{totalVolumes}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Barre de recherche */}
-      <div className="relative w-full max-w-md mx-auto">
-        <input
-          type="text"
-          placeholder="Rechercher dans ma collection..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-        />
-        <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
-      </div>
-
-      {filteredMangas.length === 0 ? (
-        <div className="text-center py-8 bg-white rounded-lg shadow-md">
-          <Search className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-600">Aucun manga ne correspond à votre recherche</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredMangas.map((manga) => {
-            const { icon: StatusIcon, color, text } = getStatusInfo(manga.reading_status);
-            
-            return (
-              <div
-                key={`manga-${manga.mal_id}`}
-                className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform hover:scale-[1.02] transition-transform"
-                onClick={() => setSelectedManga(manga)}
-              >
-                <div className="relative">
-                  <img
-                    src={manga.image_url}
-                    alt={manga.title}
-                    className="w-full h-64 object-cover"
-                  />
-                  <div className={`absolute top-2 right-2 rounded-full px-3 py-1 flex items-center gap-1 ${color}`}>
-                    <StatusIcon className="w-4 h-4" />
-                    <span className="text-sm font-medium">{text}</span>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-lg mb-2 line-clamp-1">{manga.title}</h3>
-                  <div className="flex justify-between items-center text-sm text-gray-600">
-                    <span className="flex items-center">
-                      <BookCopy className="w-4 h-4 mr-1 text-indigo-600" />
-                      {manga.current_volume} / {manga.volumes || '?'} tomes
-                    </span>
-                  </div>
-                </div>
+    <>
+      <SEO 
+        title="Ma Collection de Mangas - MangaMania"
+        description="Gérez et organisez votre collection personnelle de mangas. Suivez vos séries préférées et votre progression de lecture."
+        type="website"
+        url="/collection"
+        keywords="collection manga, bibliothèque manga, gestion manga, suivi lecture manga"
+      />
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <h1 className="text-3xl font-bold text-gray-900">Ma Collection</h1>
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <div className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-3 flex-1">
+              <Books className="w-6 h-6 text-indigo-600" />
+              <div>
+                <p className="text-sm text-gray-600">Total Mangas</p>
+                <p className="text-xl font-bold text-gray-900">{totalMangas}</p>
               </div>
-            );
-          })}
+            </div>
+            <div className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-3 flex-1">
+              <BookCopy className="w-6 h-6 text-indigo-600" />
+              <div>
+                <p className="text-sm text-gray-600">Total Tomes</p>
+                <p className="text-xl font-bold text-gray-900">{totalVolumes}</p>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
-    </div>
+
+        {/* Barre de recherche */}
+        <div className="relative w-full max-w-md mx-auto">
+          <input
+            type="text"
+            placeholder="Rechercher dans ma collection..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+          <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
+        </div>
+
+        {filteredMangas.length === 0 ? (
+          <div className="text-center py-8 bg-white rounded-lg shadow-md">
+            <Search className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-600">Aucun manga ne correspond à votre recherche</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredMangas.map((manga) => {
+              const { icon: StatusIcon, color, text } = getStatusInfo(manga.reading_status);
+              
+              return (
+                <div
+                  key={`manga-${manga.mal_id}`}
+                  className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform hover:scale-[1.02] transition-transform"
+                  onClick={() => setSelectedManga(manga)}
+                >
+                  <div className="relative">
+                    <img
+                      src={manga.image_url}
+                      alt={manga.title}
+                      className="w-full h-64 object-cover"
+                    />
+                    <div className={`absolute top-2 right-2 rounded-full px-3 py-1 flex items-center gap-1 ${color}`}>
+                      <StatusIcon className="w-4 h-4" />
+                      <span className="text-sm font-medium">{text}</span>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-lg mb-2 line-clamp-1">{manga.title}</h3>
+                    <div className="flex justify-between items-center text-sm text-gray-600">
+                      <span className="flex items-center">
+                        <BookCopy className="w-4 h-4 mr-1 text-indigo-600" />
+                        {manga.current_volume} / {manga.volumes || '?'} tomes
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
   );
-}
+};

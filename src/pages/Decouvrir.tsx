@@ -15,6 +15,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { mangaService } from "../services/mangaService";
+import { SEO } from '../components/SEO';
 
 // Interface pour les données de manga
 interface Manga {
@@ -44,6 +45,15 @@ interface Manga {
   serializations?: Array<{ name: string }>;
   status?: string;
 }
+
+// Traduction des statuts
+const statusTranslations: { [key: string]: string } = {
+  Finished: "Terminé",
+  Publishing: "En cours",
+  "On Hiatus": "En pause",
+  Discontinued: "Abandonné",
+  "Not yet published": "À paraître",
+};
 
 export function Decouvrir() {
   const { user } = useAuth();
@@ -122,16 +132,7 @@ export function Decouvrir() {
     }
   };
 
-  const translateStatus = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      Finished: "Terminé",
-      Publishing: "En cours",
-      "On Hiatus": "En pause",
-      Discontinued: "Abandonné",
-      "Not yet published": "À paraître",
-    };
-    return statusMap[status] || status;
-  };
+  const translateStatus = (status: string) => statusTranslations[status] || status;
 
   const MangaCard = ({
     manga,
@@ -257,86 +258,96 @@ export function Decouvrir() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Partez à l'exploration de nouveaux mangas
-        </h1>
-        <p className="text-lg text-gray-600">
-          Découvrez les tops mangas et plein d'autres !
-        </p>
-      </div>
-
-      <div className="max-w-2xl mx-auto mb-12">
-        <h2 className="text-2xl font-semibold mb-6 flex items-center justify-center">
-          <Search className="w-6 h-6 mr-2 text-indigo-600" />
-          Rechercher un Manga
-        </h2>
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              placeholder="Rechercher un manga..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  searchMangas();
-                }
-              }}
-            />
-            <Search
-              className="absolute right-3 top-2.5 text-gray-400"
-              size={20}
-            />
-          </div>
-          <button
-            onClick={searchMangas}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            Rechercher
-          </button>
+    <>
+      <SEO 
+        title="Découvrir des Mangas - MangaMania"
+        description="Explorez notre vaste collection de mangas, découvrez les séries les plus populaires et trouvez votre prochaine lecture préférée."
+        type="website"
+        url="/decouvrir"
+        keywords="découverte manga, top manga, recherche manga, nouveaux mangas, collection manga"
+      />
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Partez à l'exploration de nouveaux mangas
+          </h1>
+          <p className="text-lg text-gray-600">
+            Découvrez les tops mangas et plein d'autres !
+          </p>
         </div>
-      </div>
 
-      {isLoading ? (
-        <div className="text-center">Chargement...</div>
-      ) : (
-        searchResults.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-semibold mb-6 flex items-center">
-              <BookOpen className="w-6 h-6 mr-2 text-indigo-600" />
-              Résultats de la recherche
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {searchResults.map((manga) => (
-                <MangaCard key={`search-${manga.mal_id}`} manga={manga} />
+        <div className="max-w-2xl mx-auto mb-12">
+          <h2 className="text-2xl font-semibold mb-6 flex items-center justify-center">
+            <Search className="w-6 h-6 mr-2 text-indigo-600" />
+            Rechercher un Manga
+          </h2>
+          <div className="flex gap-2">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Rechercher un manga..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    searchMangas();
+                  }
+                }}
+              />
+              <Search
+                className="absolute right-3 top-2.5 text-gray-400"
+                size={20}
+              />
+            </div>
+            <button
+              onClick={searchMangas}
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Rechercher
+            </button>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="text-center">Chargement...</div>
+        ) : (
+          searchResults.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-semibold mb-6 flex items-center">
+                <BookOpen className="w-6 h-6 mr-2 text-indigo-600" />
+                Résultats de la recherche
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {searchResults.map((manga) => (
+                  <MangaCard key={`search-${manga.mal_id}`} manga={manga} />
+                ))}
+              </div>
+            </div>
+          )
+        )}
+
+        <div className="mb-16">
+          <h2 className="text-2xl font-semibold mb-6 flex items-center">
+            <Trophy className="w-6 h-6 mr-2 text-yellow-500" />
+            Top Mangas du Moment
+          </h2>
+          {isLoadingTop ? (
+            <div className="text-center py-12">Chargement des tops mangas...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {topMangas.map((manga) => (
+                <MangaCard
+                  key={`top-${manga.mal_id}`}
+                  manga={manga}
+                  isTopManga={true}
+                />
               ))}
             </div>
-          </div>
-        )
-      )}
-
-      <div className="mb-16">
-        <h2 className="text-2xl font-semibold mb-6 flex items-center">
-          <Trophy className="w-6 h-6 mr-2 text-yellow-500" />
-          Top Mangas du Moment
-        </h2>
-        {isLoadingTop ? (
-          <div className="text-center py-12">Chargement des tops mangas...</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {topMangas.map((manga) => (
-              <MangaCard
-                key={`top-${manga.mal_id}`}
-                manga={manga}
-                isTopManga={true}
-              />
-            ))}
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

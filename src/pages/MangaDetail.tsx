@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { mangaService } from '../services/mangaService';
 import { useAuth } from '../contexts/AuthContext';
+import { SEO } from '../components/SEO';
 
 interface MangaDetail {
   mal_id: number;
@@ -156,237 +157,247 @@ export function MangaDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Bouton retour */}
-        <Link
-          to="/decouvrir"
-          className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-6"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Retour à la découverte
-        </Link>
+    <>
+      <SEO 
+        title={`${manga.title} - MangaMania`}
+        description={manga.synopsis}
+        image={manga.images.webp.large_image_url}
+        type="article"
+        url={`/manga/${id}`}
+        keywords={`manga, ${manga.title}, lecture, anime, japon`}
+      />
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Bouton retour */}
+          <Link
+            to="/decouvrir"
+            className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-6"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Retour à la découverte
+          </Link>
 
-        {/* En-tête du manga */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
-          <div className="md:flex">
-            {/* Image du manga */}
-            <div className="md:w-1/3">
-              <img
-                src={manga.images.webp.large_image_url}
-                alt={manga.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
+          {/* En-tête du manga */}
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+            <div className="md:flex">
+              {/* Image du manga */}
+              <div className="md:w-1/3">
+                <img
+                  src={manga.images.webp.large_image_url}
+                  alt={manga.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
 
-            {/* Informations principales */}
-            <div className="p-8 md:w-2/3">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    {manga.title}
-                  </h1>
-                  {manga.title_japanese && (
-                    <p className="text-gray-600 mb-2">{manga.title_japanese}</p>
-                  )}
-                </div>
-                {user && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleCollectionToggle}
-                      disabled={isAddingToCollection}
-                      className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-                        isInCollection
-                          ? 'bg-green-500 text-white'
-                          : isAddingToCollection
-                          ? 'bg-gray-300 cursor-wait'
-                          : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                      }`}
-                    >
-                      {isInCollection ? (
-                        <>
-                          <Check className="w-5 h-5 mr-2" />
-                          Dans la collection
-                        </>
-                      ) : isAddingToCollection ? (
-                        <>
-                          <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Ajout en cours...
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="w-5 h-5 mr-2" />
-                          Ajouter à ma collection
-                        </>
-                      )}
-                    </button>
-                    {isInCollection && (
-                      <Link
-                        to="/lecture"
-                        className="flex items-center px-4 py-2 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
-                      >
-                        <BookOpenCheck className="w-5 h-5 mr-2" />
-                        Voir dans ma lecture
-                      </Link>
+              {/* Informations principales */}
+              <div className="p-8 md:w-2/3">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                      {manga.title}
+                    </h1>
+                    {manga.title_japanese && (
+                      <p className="text-gray-600 mb-2">{manga.title_japanese}</p>
                     )}
                   </div>
-                )}
-              </div>
+                  {user && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleCollectionToggle}
+                        disabled={isAddingToCollection}
+                        className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                          isInCollection
+                            ? 'bg-green-500 text-white'
+                            : isAddingToCollection
+                            ? 'bg-gray-300 cursor-wait'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        }`}
+                      >
+                        {isInCollection ? (
+                          <>
+                            <Check className="w-5 h-5 mr-2" />
+                            Dans la collection
+                          </>
+                        ) : isAddingToCollection ? (
+                          <>
+                            <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Ajout en cours...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-5 h-5 mr-2" />
+                            Ajouter à ma collection
+                          </>
+                        )}
+                      </button>
+                      {isInCollection && (
+                        <Link
+                          to="/lecture"
+                          className="flex items-center px-4 py-2 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+                        >
+                          <BookOpenCheck className="w-5 h-5 mr-2" />
+                          Voir dans ma lecture
+                        </Link>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-              {/* Statistiques */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="flex items-center">
-                  <Star className="w-5 h-5 text-yellow-500 mr-2" />
-                  <span className="text-gray-900">{manga.score}/10</span>
+                {/* Statistiques */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="flex items-center">
+                    <Star className="w-5 h-5 text-yellow-500 mr-2" />
+                    <span className="text-gray-900">{manga.score}/10</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Users className="w-5 h-5 text-blue-500 mr-2" />
+                    <span className="text-gray-900">{manga.scored_by.toLocaleString()} votes</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Trophy className="w-5 h-5 text-purple-500 mr-2" />
+                    <span className="text-gray-900">#{manga.rank}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Heart className="w-5 h-5 text-red-500 mr-2" />
+                    <span className="text-gray-900">{manga.favorites.toLocaleString()}</span>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <Users className="w-5 h-5 text-blue-500 mr-2" />
-                  <span className="text-gray-900">{manga.scored_by.toLocaleString()} votes</span>
-                </div>
-                <div className="flex items-center">
-                  <Trophy className="w-5 h-5 text-purple-500 mr-2" />
-                  <span className="text-gray-900">#{manga.rank}</span>
-                </div>
-                <div className="flex items-center">
-                  <Heart className="w-5 h-5 text-red-500 mr-2" />
-                  <span className="text-gray-900">{manga.favorites.toLocaleString()}</span>
-                </div>
-              </div>
 
-              {/* Informations détaillées */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center">
-                  <Activity className="w-5 h-5 text-gray-500 mr-2" />
-                  <span className="text-gray-700">
-                    Statut: {translateStatus(manga.status)}
-                  </span>
+                {/* Informations détaillées */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center">
+                    <Activity className="w-5 h-5 text-gray-500 mr-2" />
+                    <span className="text-gray-700">
+                      Statut: {translateStatus(manga.status)}
+                    </span>
+                  </div>
+                  {manga.volumes && (
+                    <div className="flex items-center">
+                      <BookCopy className="w-5 h-5 text-gray-500 mr-2" />
+                      <span className="text-gray-700">{manga.volumes} tomes</span>
+                    </div>
+                  )}
+                  {manga.chapters && (
+                    <div className="flex items-center">
+                      <BookOpen className="w-5 h-5 text-gray-500 mr-2" />
+                      <span className="text-gray-700">{manga.chapters} chapitres</span>
+                    </div>
+                  )}
+                  {manga.published && (
+                    <div className="flex items-center">
+                      <Calendar className="w-5 h-5 text-gray-500 mr-2" />
+                      <span className="text-gray-700">{manga.published.string}</span>
+                    </div>
+                  )}
                 </div>
-                {manga.volumes && (
-                  <div className="flex items-center">
-                    <BookCopy className="w-5 h-5 text-gray-500 mr-2" />
-                    <span className="text-gray-700">{manga.volumes} tomes</span>
-                  </div>
-                )}
-                {manga.chapters && (
-                  <div className="flex items-center">
-                    <BookOpen className="w-5 h-5 text-gray-500 mr-2" />
-                    <span className="text-gray-700">{manga.chapters} chapitres</span>
-                  </div>
-                )}
-                {manga.published && (
-                  <div className="flex items-center">
-                    <Calendar className="w-5 h-5 text-gray-500 mr-2" />
-                    <span className="text-gray-700">{manga.published.string}</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Contenu détaillé */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Synopsis et background */}
-          <div className="md:col-span-2 space-y-8">
-            {/* Synopsis */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-semibold mb-4">Synopsis</h2>
-              <p className="text-gray-700 whitespace-pre-line">{manga.synopsis}</p>
-            </div>
-
-            {/* Background */}
-            {manga.background && (
+          {/* Contenu détaillé */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Synopsis et background */}
+            <div className="md:col-span-2 space-y-8">
+              {/* Synopsis */}
               <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-2xl font-semibold mb-4">Contexte</h2>
-                <p className="text-gray-700 whitespace-pre-line">{manga.background}</p>
+                <h2 className="text-2xl font-semibold mb-4">Synopsis</h2>
+                <p className="text-gray-700 whitespace-pre-line">{manga.synopsis}</p>
               </div>
-            )}
-          </div>
 
-          {/* Informations complémentaires */}
-          <div className="space-y-8">
-            {/* Auteurs et Magazines */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Informations</h2>
-              
-              {/* Auteurs */}
-              {manga.authors.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="font-medium text-gray-900 mb-2 flex items-center">
-                    <Users className="w-4 h-4 mr-2" />
-                    Auteurs
-                  </h3>
-                  <ul className="list-disc list-inside text-gray-700">
-                    {manga.authors.map(author => (
-                      <li key={author.name}>{author.name}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Magazines */}
-              {manga.serializations.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="font-medium text-gray-900 mb-2 flex items-center">
-                    <Building2 className="w-4 h-4 mr-2" />
-                    Magazines
-                  </h3>
-                  <ul className="list-disc list-inside text-gray-700">
-                    {manga.serializations.map(serial => (
-                      <li key={serial.name}>{serial.name}</li>
-                    ))}
-                  </ul>
+              {/* Background */}
+              {manga.background && (
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h2 className="text-2xl font-semibold mb-4">Contexte</h2>
+                  <p className="text-gray-700 whitespace-pre-line">{manga.background}</p>
                 </div>
               )}
             </div>
 
-            {/* Genres et Thèmes */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Genres et Thèmes</h2>
-              
-              {/* Genres */}
-              {manga.genres.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="font-medium text-gray-900 mb-2 flex items-center">
-                    <Tag className="w-4 h-4 mr-2" />
-                    Genres
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {manga.genres.map(genre => (
-                      <span
-                        key={genre.name}
-                        className="bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full"
-                      >
-                        {genre.name}
-                      </span>
-                    ))}
+            {/* Informations complémentaires */}
+            <div className="space-y-8">
+              {/* Auteurs et Magazines */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-xl font-semibold mb-4">Informations</h2>
+                
+                {/* Auteurs */}
+                {manga.authors.length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="font-medium text-gray-900 mb-2 flex items-center">
+                      <Users className="w-4 h-4 mr-2" />
+                      Auteurs
+                    </h3>
+                    <ul className="list-disc list-inside text-gray-700">
+                      {manga.authors.map(author => (
+                        <li key={author.name}>{author.name}</li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Thèmes */}
-              {manga.themes.length > 0 && (
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2 flex items-center">
-                    <Globe className="w-4 h-4 mr-2" />
-                    Thèmes
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {manga.themes.map(theme => (
-                      <span
-                        key={theme.name}
-                        className="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full"
-                      >
-                        {theme.name}
-                      </span>
-                    ))}
+                {/* Magazines */}
+                {manga.serializations.length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="font-medium text-gray-900 mb-2 flex items-center">
+                      <Building2 className="w-4 h-4 mr-2" />
+                      Magazines
+                    </h3>
+                    <ul className="list-disc list-inside text-gray-700">
+                      {manga.serializations.map(serial => (
+                        <li key={serial.name}>{serial.name}</li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              {/* Genres et Thèmes */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-xl font-semibold mb-4">Genres et Thèmes</h2>
+                
+                {/* Genres */}
+                {manga.genres.length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="font-medium text-gray-900 mb-2 flex items-center">
+                      <Tag className="w-4 h-4 mr-2" />
+                      Genres
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {manga.genres.map(genre => (
+                        <span
+                          key={genre.name}
+                          className="bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full"
+                        >
+                          {genre.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Thèmes */}
+                {manga.themes.length > 0 && (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-2 flex items-center">
+                      <Globe className="w-4 h-4 mr-2" />
+                      Thèmes
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {manga.themes.map(theme => (
+                        <span
+                          key={theme.name}
+                          className="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full"
+                        >
+                          {theme.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
