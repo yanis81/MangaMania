@@ -18,10 +18,10 @@ export const SEO: React.FC<SEOProps> = ({
   description = 'Gérez votre collection de mangas, suivez votre progression de lecture et découvrez de nouvelles séries',
   keywords = 'manga, collection, lecture, anime, japon, bibliothèque, suivi lecture',
   image = '/assets/og-image.jpg',
-  url = 'https://manga-mania-theta.vercel.app/',
+  url = 'https://manga-mania-theta.vercel.app',
   type = 'website'
 }) => {
-  const fullUrl = url.startsWith('http') ? url : `https://manga-mania-theta.vercel.app/${url}`;
+  const fullUrl = url.startsWith('http') ? url : `https://manga-mania-theta.vercel.app${url}`;
   
   return (
     <Helmet>
