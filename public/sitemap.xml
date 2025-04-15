@@ -9,7 +9,7 @@
   <url>
     <loc>https://manga-mania-theta.vercel.app/collection</loc>
     <lastmod>2025-04-15</lastmod>
-    <changefreq>daily</changefreq>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
@@ -21,7 +21,7 @@
   <url>
     <loc>https://manga-mania-theta.vercel.app/calendrier</loc>
     <lastmod>2025-04-15</lastmod>
-    <changefreq>daily</changefreq>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>

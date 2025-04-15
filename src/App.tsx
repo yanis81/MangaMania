@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from "./contexts/AuthContext";
 import { Layout } from "./components/layout/Layout";
-import { SEO } from "./components/SEO";
 
 // Import des pages
 import { Home } from "./pages/Home";
@@ -26,7 +25,8 @@ const AppRoutes = () => (
     <Route path="/lecture" element={<Lecture />} />
     <Route path="/calendrier" element={<Calendrier />} />
     <Route path="/manga/:id" element={<MangaDetail />} />
-    <Route path="/*" element={<Erreur404 />} />
+    <Route path="/404" element={<Erreur404 />} />
+    <Route path="*" element={<Erreur404 />} />
   </Routes>
 );
 
@@ -40,8 +40,6 @@ const App: React.FC = () => {
       <AuthProvider>
         <BrowserRouter>
           <Layout>
-            {/* SEO par défaut pour l'application */}
-            <SEO />
             <AppRoutes />
           </Layout>
         </BrowserRouter>

@@ -14,7 +14,8 @@ export function Erreur404() {
         title="Page non trouvée - MangaMania"
         description="La page que vous recherchez n'existe pas ou a été déplacée."
         type="website"
-        url="/*"
+        url="/404"
+        robots="noindex, follow"
       />
       
       <div className="min-h-[60vh] flex items-center justify-center">
