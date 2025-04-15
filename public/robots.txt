@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://manga-mania-theta.vercel.app/sitemap.xml
+
+# Ne pas indexer les pages d'erreur
+Disallow: /404

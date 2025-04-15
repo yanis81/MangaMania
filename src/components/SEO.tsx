@@ -7,6 +7,8 @@ interface SEOProps {
   image?: string;
   url?: string;
   type?: string;
+  author?: string;
+  robots?: string;
 }
 
 /**
@@ -19,7 +21,9 @@ export const SEO: React.FC<SEOProps> = ({
   keywords = 'manga, collection, lecture, anime, japon, bibliothèque, suivi lecture',
   image = '/assets/og-image.jpg',
   url = 'https://manga-mania-theta.vercel.app',
-  type = 'website'
+  type = 'website',
+  author = 'MangaMania Team',
+  robots = 'index, follow'
 }) => {
   const fullUrl = url.startsWith('http') ? url : `https://manga-mania-theta.vercel.app${url}`;
   
@@ -29,6 +33,8 @@ export const SEO: React.FC<SEOProps> = ({
       <title>{title}</title>
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
+      <meta name="author" content={author} />
+      <meta name="robots" content={robots} />
       <link rel="canonical" href={fullUrl} />
 
       {/* Open Graph / Facebook */}
@@ -46,4 +52,4 @@ export const SEO: React.FC<SEOProps> = ({
       <meta name="twitter:image" content={image} />
     </Helmet>
   );
-}; 
+};
